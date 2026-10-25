@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bug Report Generator</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen py-8 px-4">
+<div class="max-w-3xl mx-auto">
+  <h1 class="text-3xl font-bold text-gray-800 mb-2 text-center">Bug Report Generator</h1>
+  <p class="text-gray-500 text-center mb-8">Fill the form — get GitHub-flavored Markdown instantly</p>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-6">
+    <div class="space-y-5">
+      <div>
+        <label for="bug-title" class="block text-sm font-medium text-gray-700 mb-1">Bug Title <span class="text-red-400">*</span></label>
+        <input id="bug-title" type="text" placeholder="Short, descriptive title of the bug"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+          oninput="saveDraft(); generateMarkdown()">
+      </div>
+
+      <div>
+        <label for="severity" class="block text-sm font-medium text-gray-700 mb-1">Severity</label>
+        <select id="severity"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-violet-400"
+          onchange="saveDraft(); generateMarkdown()">
+          <option value="Critical">Critical — System unusable / data loss</option>
+          <option value="High">High — Major feature broken</option>
+          <option value="Medium" selected>Medium — Feature impaired, workaround exists</option>
+          <option value="Low">Low — Minor issue / cosmetic</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="steps" class="block text-sm font-medium text-gray-700 mb-1">Steps to Reproduce <span class="text-red-400">*</span></label>
+        <textarea id="steps" rows="5" placeholder="1. Go to '...'\n2. Click on '...'\n3. Scroll down to '...'\n4. See error"
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 resize-y"
+          oninput="saveDraft(); generateMarkdown()"></textarea>
+        <p class="text-xs text-gray-400 mt-1">One step per line. Numbers will be added automatically.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div>
+          <label for="expected" class="block text-sm font-medium text-gray-700 mb-1">Expected Behavior <span class="text-red-400">*</span></label>
+          <textarea id="expected" rows="3" placeholder="What should happen?"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 resize-y"
+            oninput="saveDraft(); generateMarkdown()"></textarea>
+        </div>
+        <div>
+          <label for="actual" class="block text-sm font-medium text-gray-700 mb-1">Actual Behavior <span class="text-red-400">*</span></label>
+          <textarea id="actual" rows="3" placeholder="What actually happens?"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 resize-y"
+            oninput="saveDraft(); generateMarkdown()"></textarea>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+        <div>
+          <label for="env-os" class="block text-sm font-medium text-gray-700 mb-1">Operating System</label>
+          <input id="env-os" type="text" placeholder="e.g. macOS 14.4"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+            oninput="saveDraft(); generateMarkdown()">
+        </div>
+        <div>
+          <label for="env-browser" class="block text-sm font-medium text-gray-700 mb-1">Browser</label>
+          <input id="env-browser" type="text" placeholder="e.g. Chrome 124"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+            oninput="saveDraft(); generateMarkdown()">
+        </div>
+        <div>
+          <label for="env-version" class="block text-sm font-medium text-gray-700 mb-1">App Version</label>
+          <input id="env-version" type="text" placeholder="e.g. v2.3.1"
+            class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400"
+            oninput="saveDraft(); generateMarkdown()">
+        </div>
+      </div>
+
+      <div>
+        <label for="additional" class="block text-sm font-medium text-gray-700 mb-1">Additional Context</label>
+        <textarea id="additional" rows="2" placeholder="Screenshots, logs, error messages, or any other context..."
+          class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-400 resize-y"
+          oninput="saveDraft(); generateMarkdown()"></textarea>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+      <span id="draft-indicator" class="text-xs text-gray-400">Draft auto-saved</span>
+      <button onclick="clearDraft()" class="text-xs text-red-400 hover:text-red-600 transition-colors">Clear form</button>
+    </div>
+  </div>
+
+  <div id="output-area" class="bg-white rounded-2xl shadow-sm border border-gray-200 p-6">
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="text-base font-semibold text-gray-700">Generated Markdown</h2>
+      <div class="flex gap-2">
+        <button onclick="copyMarkdown()" id="copy-md-btn"
+          class="px-3 py-1.5 bg-violet-50 text-violet-600 rounded-lg text-xs font-medium hover:bg-violet-100 transition-colors"
+          aria-label="Copy markdown to clipboard">
+          Copy
+        </button>
+        <button onclick="downloadMarkdown()"
+          class="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg text-xs font-medium hover:bg-gray-200 transition-colors"
+          aria-label="Download as .md file">
+          Download .md
+        </button>
+      </div>
+    </div>
+    <pre id="markdown-output" class="bg-gray-50 rounded-lg p-4 text-xs text-gray-700 overflow-x-auto whitespace-pre-wrap font-mono leading-relaxed min-h-24"></pre>
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'bug-report-draft-v1';
+const FIELDS = ['bug-title', 'severity', 'steps', 'expected', 'actual', 'env-os', 'env-browser', 'env-version', 'additional'];
+
+function saveDraft() {
+  const data = {};
+  FIELDS.forEach(f => { data[f] = document.getElementById(f).value; });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  const el = document.getElementById('draft-indicator');
+  el.textContent = 'Draft saved ' + new Date().toLocaleTimeString();
+}
+
+function loadDraft() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return;
+  try {
+    const data = JSON.parse(raw);
+    FIELDS.forEach(f => {
+      const el = document.getElementById(f);
+      if (data[f] !== undefined) el.value = data[f];
+    });
+  } catch(e) {}
+  generateMarkdown();
+}
+
+function clearDraft() {
+  localStorage.removeItem(STORAGE_KEY);
+  FIELDS.forEach(f => {
+    const el = document.getElementById(f);
+    el.tagName === 'SELECT' ? (el.value = 'Medium') : (el.value = '');
+  });
+  generateMarkdown();
+}
+
+function formatSteps(raw) {
+  const lines = raw.split('\n').map(l => l.trim()).filter(Boolean);
+  return lines.map((l, i) => {
+    const stripped = l.replace(/^\d+[\.\)]\s*/, '');
+    return (i + 1) + '. ' + stripped;
+  }).join('\n');
+}
+
+function severityBadge(s) {
+  const map = { Critical: '🔴', High: '🟠', Medium: '🟡', Low: '🟢' };
+  return (map[s] || '') + ' ' + s;
+}
+
+function generateMarkdown() {
+  const title = document.getElementById('bug-title').value.trim();
+  const severity = document.getElementById('severity').value;
+  const steps = document.getElementById('steps').value.trim();
+  const expected = document.getElementById('expected').value.trim();
+  const actual = document.getElementById('actual').value.trim();
+  const os = document.getElementById('env-os').value.trim();
+  const browser = document.getElementById('env-browser').value.trim();
+  const version = document.getElementById('env-version').value.trim();
+  const additional = document.getElementById('additional').value.trim();
+
+  let md = '';
+  md += '# ' + (title || 'Bug Report') + '\n\n';
+  md += '**Severity:** ' + severityBadge(severity) + '\n\n';
+  md += '## Steps to Reproduce\n\n';
+  md += (steps ? formatSteps(steps) : '_No steps provided._') + '\n\n';
+  md += '## Expected Behavior\n\n';
+  md += (expected || '_Not specified._') + '\n\n';
+  md += '## Actual Behavior\n\n';
+  md += (actual || '_Not specified._') + '\n\n';
+  md += '## Environment\n\n';
+  md += '| Field | Value |\n|-------|-------|\n';
+  md += '| OS | ' + (os || '—') + ' |\n';
+  md += '| Browser | ' + (browser || '—') + ' |\n';
+  md += '| Version | ' + (version || '—') + ' |\n\n';
+  if (additional) {
+    md += '## Additional Context\n\n' + additional + '\n';
+  }
+
+  document.getElementById('markdown-output').textContent = md;
+}
+
+function copyMarkdown() {
+  const text = document.getElementById('markdown-output').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copy-md-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 2000);
+  });
+}
+
+function downloadMarkdown() {
+  const text = document.getElementById('markdown-output').textContent;
+  const title = document.getElementById('bug-title').value.trim().replace(/\s+/g, '-').replace(/[^a-zA-Z0-9\-]/g, '').toLowerCase() || 'bug-report';
+  const blob = new Blob([text], { type: 'text/markdown' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = title + '.md';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+loadDraft();
+if (!document.getElementById('bug-title').value) generateMarkdown();
+</script>
+</body>
+</html>
